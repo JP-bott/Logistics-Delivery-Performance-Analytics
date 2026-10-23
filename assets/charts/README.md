@@ -1,0 +1,1 @@
+Export operational chart images from the dashboard or notebook.

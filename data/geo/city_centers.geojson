@@ -1,0 +1,48 @@
+{
+  "type": "FeatureCollection",
+  "name": "NexRoute representative city-center points",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "city": "Quezon City",
+        "region": "NCR"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          121.0437,
+          14.676
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "city": "Cebu City",
+        "region": "Central Visayas"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          123.8854,
+          10.3157
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "city": "Davao City",
+        "region": "Davao Region"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          125.6128,
+          7.0731
+        ]
+      }
+    }
+  ]
+}

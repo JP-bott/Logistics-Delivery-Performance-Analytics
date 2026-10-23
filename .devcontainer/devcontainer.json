@@ -1,0 +1,22 @@
+{
+  "name": "NexRoute Analytics",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bookworm",
+  "postCreateCommand": "python -m pip install -r requirements.txt && python scripts/generate_data.py && python scripts/load_database.py",
+  "forwardPorts": [
+    8501
+  ],
+  "portsAttributes": {
+    "8501": {
+      "label": "NexRoute Dashboard",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-toolsai.jupyter"
+      ]
+    }
+  }
+}

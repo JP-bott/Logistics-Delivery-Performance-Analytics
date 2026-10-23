@@ -1,125 +1,70 @@
-<p align="left"><img src="assets/nexroute_logo.svg" alt="NexRoute Logistics Intelligence" width="380"></p>
+<img src="assets/nexroute_logo.svg" width="380" alt="NexRoute Logistics Intelligence"/>
 
 # Logistics & Delivery Performance Intelligence
 
-**Python · SQL · pandas · GeoPandas · Plotly · Streamlit**  
-**Author:** John Paul Torres  
-**Scenario:** NexRoute Logistics, a **fictional** logistics operator in the Philippines, January 1, 2024 through December 31, 2025.
+**Author:** John Paul Torres · **License:** MIT · **Stack:** Python, pandas, NumPy, SQLite, Plotly, Streamlit, GeoPandas and SQL.
 
-An interactive operations control tower for shipment reliability, courier efficiency, regional delivery patterns, service-level agreements and modeled shipping costs. This project is a data analyst / business intelligence portfolio exercise. **All operational records, couriers, hub identities and shipping costs are synthetic.**
+NexRoute is a **fictional Philippine logistics company**, designed as a junior data analyst / BI portfolio project. Its dashboard investigates synthetic shipment volumes, delivery reliability, courier productivity, regional geospatial patterns, delivery exceptions and shipping economics for **January 2024 through December 2025**. All costs, couriers, facilities and delivery transactions are simulated, not real carrier data.
 
-## What the dashboard answers
+## Quick start
 
-| Workspace | Management questions |
-| --- | --- |
-| Operations Overview | How many shipments were processed? How frequently are they delivered on time? How does volume shift each month? |
-| Geographic Delivery Analysis | Where are shipments concentrated? Which city centers are served? What are the busiest origin–destination corridors? |
-| Courier Performance | Which couriers and vehicle groups have higher success and SLA compliance, once sample size is controlled? |
-| SLA & Delay Analytics | Where do late delivered shipments arise? How large are delays? What failure reasons recur? |
-| Shipping Cost Analysis | How do service type, distance, region and vehicle relate to fictional shipping expenses? |
-| Shipment Explorer | Which records satisfy the filters, and what events belong to each specific shipment? |
-
-## Run locally or in GitHub Codespaces
-
-Requires Python **3.11+**. Open a terminal in the repository root:
+In GitHub Codespaces, create a Codespace on `main`, allow the configured Python environment to install dependencies, then run:
 
 ```bash
-python -m pip install -r requirements.txt
+python scripts/generate_data.py
+python scripts/load_database.py
 streamlit run app.py
 ```
 
-Open http://localhost:8501. In Codespaces, select **Code → Codespaces → Create codespace on main**, then run the same commands. Streamlit port **8501** is configured for forwarding. Optional full regeneration:
+Open the forwarded **8501** port. The same commands run in a local Python 3.11+ environment after `python -m pip install -r requirements.txt`. The SQLite database and large generated CSVs are **generated on demand**, not checked into this source repository. The downloadable complete ZIP in the associated ChatGPT conversation additionally contains the prebuilt database and full generated datasets.
+
+## Dashboard sections
+
+| Workspace | Visuals and business questions |
+| --- | --- |
+| Operations Overview | Shipment counts, success and on-time KPI cards, rolling-volume trends, regional SLA heatmap and waterfall |
+| Geographic Delivery Analysis | Offline-capable Philippine city-center scatter map, origin/destination corridors and regional comparison |
+| Courier Performance | Courier rankings with minimum-volume threshold, workload comparison and vehicle delivery distribution |
+| SLA & Delay Analytics | SLA KPI cards, late-delivery histogram, service-region matrix, failure reasons, Pareto |
+| Shipping Cost Analysis | Cost trends, geodesic distance correlation, cost distribution and route benchmarking |
+| Shipment Explorer | Shipment lookup, filtered CSV download and actual generated tracking-event chronology |
+
+The project includes six operational SQL files demonstrating relational JOINs, aggregations, CTEs and window functions; a reproducible analysis notebook; a fixed-seed data generator; a normalized database schema; and data integrity tests. All views use interactive sidebar filters for date, region, courier, service and delivery status.
+
+## Data model
+
+Regenerate approximately **26,000 synthetic shipments**, **60 fictional couriers**, **12 fictional hubs**, **114 route/service SLA rules**, and a detailed event history. Fixed generator seed: `20261107`. Source CSVs live in `data/raw/` after running the generator, and the database is created at `database/logistics_analytics.db`.
+
+```text
+shipments.Courier_ID      → couriers.Courier_ID
+shipments.Origin_Hub_ID   → hubs.Hub_ID
+shipments.SLA_ID          → sla_rules.SLA_ID
+delivery_events.Shipment_ID → shipments.Shipment_ID
+delivery_events.Hub_ID   → hubs.Hub_ID
+```
+
+SQL schema definitions are in `sql/01_create_tables.sql` with secondary indexes in `sql/02_create_indexes.sql`.
+
+## KPI definitions
+
+- **Success rate:** Delivered / (Delivered + Failed + Returned). In-transit and cancelled parcels are excluded.
+- **On-time rate:** delivered on/before expected date / delivered, not all shipments.
+- **First-attempt success:** delivered with exactly one delivery attempt / all delivered.
+- **Average delivery time:** mean calendar days between dispatch and actual delivery, delivered only.
+- **SLA days:** calendar days from dispatch. Same Day applies to intra-region trips.
+- **Reporting cutoff:** December 31, 2025, Philippine local date. Incomplete shipments are not automatically counted as failed.
+
+## Assumptions, geographic limits and ethical use
+
+Destinations use representative city-center WGS84 latitude/longitude coordinates, not true delivery addresses or personal location records. Distances are **straight-line geodesics**, not road or travel-time measurements. Route flow lines are aggregated conceptual connections. No administrative boundary polygons are fabricated and no live basemap API is required. Simulated shipping costs depend on route distance, parcel weight, service, vehicle, island factor and noise, so observed correlations in this synthetic dataset must not be described as real-world causal evidence. The fictional operations model is intended for analytics practice, not actual shipping quotes or policy decisions.
+
+## Notebook and validation
 
 ```bash
-python scripts/generate_data.py --shipments 26000
-python scripts/load_database.py
-python scripts/make_assets.py
 python -m pytest tests -q
 jupyter lab
 ```
 
-The full downloadable project archive includes raw datasets and a built `database/logistics_analytics.db`. If fetching only source code, run the two data generation commands first. Once installed, shipment analytics and geographic city-point maps run without paid APIs or live data feeds. External fonts are a purely optional browser enhancement.
+Open `notebooks/logistics_delivery_analysis.ipynb` to inspect data cleaning, database joins, KPIs, geospatial aggregation, service performance and cost relationships. A GitHub Actions workflow regenerates the database, runs tests and compiles source after commits to main. The checked-in project is source-first; the local ZIP has additional generated assets and a populated database.
 
-## Dataset, entity relationships and data engineering
-
-Generated with fixed NumPy seed **20261107**, using 24 representative city locations and twelve fictional hubs spanning NCR, Central Luzon, CALABARZON, Central Visayas, Western Visayas and Davao Region.
-
-| File | Grain / contents |
-| --- | --- |
-| `data/raw/shipments.csv` | 26,000 unique shipments, dates, status, SLA, destination, weight, simulated costs, geodesic distance |
-| `data/raw/couriers.csv` | 60 fictional couriers, assigned regions, vehicle types |
-| `data/raw/hubs.csv` | 12 fictional hub sites at representative actual city coordinates |
-| `data/raw/delivery_events.csv` | 132,484 shipment events with timestamps and shipment references |
-| `data/raw/sla_rules.csv` | 114 region- and service-specific calendar-day SLAs |
-| `database/logistics_analytics.db` | Relational SQLite database rebuilt from the raw CSVs |
-| `data/geo/city_centers.geojson` | 24 hand-curated representative geographic point features |
-
-<img src="assets/database_schema.png" alt="Relational database schema: shipments linked to couriers, hubs, SLA rules, and delivery events" width="950">
-
-The `shipments` fact table references `couriers`, `hubs`, and `sla_rules`. Tracking events reference shipments and hubs. Foreign keys, unique keys, CHECK constraints and query indexes enforce basic integrity. SQL scripts in `sql/analysis/` answer performance, SLA, cost, regional and courier questions, including CTEs and window functions (`LAG`, `ROW_NUMBER`, `RANK`).
-
-## KPI definitions and exclusions
-
-| Metric | Business rule |
-| --- | --- |
-| Delivery success % | `Delivered / (Delivered + Failed + Returned) × 100` |
-| On-time delivery % | Delivered no later than expected calendar date / all delivered × 100 |
-| Failed delivery % | Failed / (Delivered + Failed + Returned) × 100 |
-| First-attempt success % | Delivered with exactly one attempt / all delivered × 100 |
-| Average delivery days | Mean calendar days from dispatch to actual delivery for delivered shipments |
-| Delay days | Positive integer calendar days between actual delivered date and expected date |
-| Average days late | Mean delay among *late delivered* parcels only |
-| Simulated cost / geographic km | Sum of synthetic shipping costs / sum of straight-line hub-to-city distances |
-
-Cancelled and unresolved/in-transit parcels are **not** put into the resolved success-rate denominator. Returned parcels are resolved but not delivered. A parcel that was not delivered is never marked as on-time delivered. All historical status evaluation uses **December 31, 2025 23:59:59 (Philippine local time)** as the cutoff. SLAs count **calendar days beginning at dispatch**, not business days.
-
-## Example calculated findings from the provided seed
-
-- **26,000** shipments; **24,284** marked delivered (**94.77%** of 25,625 resolved shipments).
-- **98.77%** of delivered parcels met the modeled deadline, and **88.30%** succeeded on the first attempt.
-- **NCR** accounted for **10,865** shipments, the largest regional share.
-- **Davao Region** had the lowest on-time-delivery rate of the covered regions, **97.66%**, and a simulated average shipping cost of **₱265.55**.
-- **Recipient unavailable** was the most common failure reason, recorded for **346** failed parcels.
-- **Pasig Distribution Center** handled the most modeled origin volume, **4,506** shipments.
-
-These figures are **simulation outputs**, not observations about actual Philippine courier operations. Global dashboard filters recalculate the displayed results and insight text.
-
-## Investigations worth prioritizing
-
-Examine Davao Region route conditions and SLA fit before proposing added capacity. Review the share of attempted deliveries involving unavailable recipients and incorrect addresses. Compare couriers using shipment-count thresholds to reduce small-sample distortions. Assess the highest modeled cost corridors while controlling for route distance, service type and weight. These are possible avenues for investigation, not evidence of an intervention's effectiveness.
-
-## Model design and geographical limitations
-
-- Source locations are manually curated approximate city centers, not official geocoded postal addresses. The point file is original project data; no third-party boundary dataset is redistributed. **No fabricated provincial or regional polygon choropleth is included.**
-- Geographic calculations use WGS84 geodesics via `pyproj.Geod`; they are **straight-line distances**, not real driving, marine, air or travel-time measures. Map links connect aggregate origin/destination points and are not routed paths.
-- Shipping cost is modeled as `(₱49 + geographic_km × route_factor + weight_kg × ₱18) × service_factor × vehicle_factor × uniform_noise`, with route factor `0.85` for routes involving specified island regions and `0.57` for other routes. Service factors range **0.78–1.85**, vehicle factors **0.88–1.37**, and noise **0.92–1.08**. Cost is floored at ₱35. Delivery fees are a separate simulated markup. These amounts are not market quotations.
-- Shipment volumes emphasize NCR; shopping seasons and courier-specific performance generate variability. Dispatch time, due dates and final outcomes obey consistent simulated rules. Failed and returned shipments have terminal event timestamps but **no actual delivery date**. Still-in-transit shipments remain unresolved at cutoff.
-- No live vehicle GPS, historical meteorology, traffic congestion, street-routing engine or real commercial SLAs are available. The dataset should not be used for business or public policy decisions.
-- The rendered dashboard screenshot is intentionally omitted if the dashboard cannot be launched in the build environment; visual assets are original logo and database schema rather than mock screenshots.
-
-## Project layout
-
-```text
-app.py                         Streamlit control tower (six workspaces)
-src/                           Reusable processing, KPI, SLA, geospatial, SQL, charts modules
-scripts/generate_data.py       Fixed-seed operational simulation
-scripts/load_database.py      Deterministic CSV → SQLite loader
-scripts/make_assets.py        Original diagram and logo generation
-sql/01_create_tables.sql       Constrained relational DDL
-sql/02_create_indexes.sql      Analytical indexes
-sql/analysis/                  Six multi-query operational analysis files
-notebooks/logistics_delivery_analysis.ipynb  Reproducible exploratory notebook
-data/raw/                      Five generated source CSVs
-data/geo/                      Original city-point GeoJSON
-assets/                        Logo, ERD and charts directory
-tests/                         Data and KPI validation checks
-.devcontainer/                 GitHub Codespaces setup
-```
-
-## Reproducibility and testing
-
-Run `python -m pytest tests -q` after regenerating the default shipment count. Tests validate foreign keys, unique IDs, date ordering, SLA joins, dashboard KPI arithmetic, geographic ranges, status transitions, terminal tracking events and filtering. The notebook can be opened with Jupyter Lab or Codespaces. Plotly maps do not need a map-service token; browser/offline renderer behavior may vary by device and Plotly version.
-
-## License
-
-[MIT License](LICENSE) · © 2026 John Paul Torres
+**© 2026 John Paul Torres.** MIT License.

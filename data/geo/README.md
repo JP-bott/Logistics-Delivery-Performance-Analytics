@@ -1,0 +1,1 @@
+Locations in generated CSVs are representative Philippine city centers, not real delivery coordinates. No province/region polygons are fabricated. The dashboard uses offline-compatible Plotly geographic point plotting and WGS84 geodesic distance, not routed road distance.
